@@ -11,7 +11,7 @@ const Leaderboard = () => {
   const leaderboardData = [
     { rank: 1, name: "Ananya Gupta", donations: 28500, referralCode: "ananya2025" },
     { rank: 2, name: "Ravi Kumar", donations: 23200, referralCode: "ravi2025" },
-    { rank: 3, name: "Priya Sharma", donations: 15750, referralCode: "priya2025", isCurrentUser: true },
+    { rank: 3, name: "", donations: 15750, referralCode: "you2025", isCurrentUser: true },
     { rank: 4, name: "Sneha Patel", donations: 14200, referralCode: "sneha2025" },
     { rank: 5, name: "Arjun Singh", donations: 12800, referralCode: "arjun2025" },
     { rank: 6, name: "Kavya Nair", donations: 11500, referralCode: "kavya2025" },

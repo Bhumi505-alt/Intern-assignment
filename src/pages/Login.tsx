@@ -4,32 +4,56 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Card } from '@/components/Card';
+
 const shecanLogo = '/image-uploads/777ca5d3-54e5-40de-bee8-1f454ed80c36.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy login - just navigate to dashboard
-    navigate('/dashboard');
+
+    try {
+      const res = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email }), // ✅ send both
+      });
+
+      const user = await res.json();
+
+      if (!res.ok || !user || !user.name || !user.email) {
+        alert('Login failed. Try again.');
+        return;
+      }
+
+      localStorage.setItem('user', JSON.stringify(user));
+      console.log("Login successful. Navigating to dashboard...");
+navigate("/dashboard");
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error('Login failed:', err);
+      alert('Login failed. Try again.');
+    }
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
         backgroundImage: `url(${shecanLogo})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Overlay for better readability */}
       <div className="absolute inset-0 bg-white/80 backdrop-blur-sm" />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -63,11 +87,11 @@ const Login = () => {
               transition={{ delay: 0.3 }}
             >
               <Input
-                label="Email"
-                type="email"
-                placeholder="your.email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                label="Name"
+                type="text"
+                placeholder="Your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
               />
             </motion.div>
@@ -75,14 +99,14 @@ const Login = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.35 }}
             >
               <Input
-                label="Password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                label="Email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </motion.div>

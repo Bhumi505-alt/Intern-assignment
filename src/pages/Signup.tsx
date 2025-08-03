@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Card } from '@/components/Card';
+
 const shecanLogo = '/image-uploads/777ca5d3-54e5-40de-bee8-1f454ed80c36.png';
 
 const Signup = () => {
@@ -15,10 +16,38 @@ const Signup = () => {
   });
   const navigate = useNavigate();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy signup - just navigate to dashboard
-    navigate('/dashboard');
+
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match.");
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:5000/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email
+        }),
+      });
+
+      if (!res.ok) {
+        alert('Signup failed.');
+        return;
+      }
+
+      const user = await res.json();
+      localStorage.setItem('user', JSON.stringify(user));
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong during signup.');
+    }
   };
 
   const handleInputChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,9 +64,8 @@ const Signup = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Overlay for better readability */}
       <div className="absolute inset-0 bg-white/80 backdrop-blur-sm" />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

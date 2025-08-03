@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/Button';
@@ -12,25 +13,54 @@ const shecanBackground = '/image-uploads/777ca5d3-54e5-40de-bee8-1f454ed80c36.pn
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
-  // Dummy data
-  const internData = {
-    name: "annil Sharma",
-    referralCode: "priya2025",
-    totalDonations: 15750,
-    target: 25000
-  };
+  const [internData, setInternData] = useState<any>(null);
+  const [rewards, setRewards] = useState([]);
 
-  const rewards = [
-    { name: "Sticker Pack", amount: 500, unlocked: true },
-    { name: "Certificate", amount: 1000, unlocked: true },
-    { name: "T-Shirt", amount: 2000, unlocked: true },
-    { name: "Water Bottle", amount: 5000, unlocked: true },
-    { name: "Hoodie", amount: 10000, unlocked: true },
-    { name: "Laptop Bag", amount: 15000, unlocked: true },
-    { name: "Gift Voucher ₹1000", amount: 20000, unlocked: false },
-    { name: "Exclusive Mentorship", amount: 25000, unlocked: false }
-  ];
+useEffect(() => {
+  const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!storedUser || !storedUser.name || !storedUser.email) {
+    navigate('/login');
+    return;
+  }
+
+  fetch('http://localhost:5000/api/dashboard', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: storedUser.email })  // ✅ use email as in backend
+  })
+    .then(res => res.json())
+    .then(data => {
+      setInternData({
+        name: data.name,
+        referralCode: data.referralCode,
+        totalDonations: data.money,
+        target: 25000
+      });
+    })
+    .catch(() => navigate('/login'));
+}, [navigate]);
+
+
+  useEffect(() => {
+    if (internData) {
+      const rewardsList = [
+        { name: "Sticker Pack", amount: 500 },
+        { name: "Certificate", amount: 1000 },
+        { name: "T-Shirt", amount: 2000 },
+        { name: "Water Bottle", amount: 5000 },
+        { name: "Hoodie", amount: 10000 },
+        { name: "Laptop Bag", amount: 15000 },
+        { name: "Gift Voucher ₹1000", amount: 20000 },
+        { name: "Exclusive Mentorship", amount: 25000 }
+      ].map(reward => ({
+        ...reward,
+        unlocked: internData.totalDonations >= reward.amount
+      }));
+      setRewards(rewardsList);
+    }
+  }, [internData]);
+
+  if (!internData) return null;
 
   const progressPercentage = (internData.totalDonations / internData.target) * 100;
 
@@ -44,11 +74,9 @@ const Dashboard = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Overlay */}
       <div className="absolute inset-0 bg-white/90 backdrop-blur-sm" />
       
       <div className="relative z-10">
-        {/* Header */}
         <header className="p-4 bg-white/70 backdrop-blur-md border-b border-white/20">
           <div className="max-w-6xl mx-auto flex justify-between items-center">
             <motion.h1
@@ -59,23 +87,19 @@ const Dashboard = () => {
               She Can Dashboard
             </motion.h1>
             <div className="flex gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/leaderboard')}
-              >
+              <Button variant="outline" onClick={() => navigate('/leaderboard')}>
                 Leaderboard
               </Button>
-              <Button 
-                variant="secondary"
-                onClick={() => navigate('/login')}
-              >
+              <Button variant="secondary" onClick={() => {
+                localStorage.removeItem('user');
+                navigate('/login');
+              }}>
                 Logout
               </Button>
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="p-4 max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -91,53 +115,12 @@ const Dashboard = () => {
             </p>
           </motion.div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-                <h3 className="text-lg font-semibold text-foreground mb-2">Your Referral Code</h3>
-                <p className="text-3xl font-bold text-primary mb-2">{internData.referralCode}</p>
-                <p className="text-sm text-muted-foreground">Share with friends & family</p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-                <h3 className="text-lg font-semibold text-foreground mb-2">Total Donations</h3>
-                <p className="text-3xl font-bold text-secondary mb-2">₹{internData.totalDonations.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">Out of ₹{internData.target.toLocaleString()} target</p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-                <h3 className="text-lg font-semibold text-foreground mb-2">Progress</h3>
-                <p className="text-3xl font-bold text-accent mb-2">{progressPercentage.toFixed(1)}%</p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPercentage}%` }}
-                    transition={{ delay: 0.8, duration: 1 }}
-                    className="bg-gradient-to-r from-primary to-accent h-2 rounded-full"
-                  />
-                </div>
-              </Card>
-            </motion.div>
+            <CardSection title="Your Referral Code" value={internData.referralCode} note="Share with friends & family" variant="primary" delay={0.3} />
+            <CardSection title="Total Donations" value={`₹${internData.totalDonations.toLocaleString()}`} note={`Out of ₹${internData.target.toLocaleString()} target`} variant="secondary" delay={0.4} />
+            <ProgressCard value={progressPercentage} delay={0.5} />
           </div>
 
-          {/* Rewards Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -152,7 +135,7 @@ const Dashboard = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.7 + index * 0.1 }}
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-lg border-2 ${
                       reward.unlocked
                         ? 'border-primary bg-primary/5 text-foreground'
                         : 'border-gray-200 bg-gray-50 text-muted-foreground'
@@ -181,7 +164,6 @@ const Dashboard = () => {
             </Card>
           </motion.div>
 
-          {/* Additional Sections */}
           <div className="space-y-8 mt-8">
             <ProfileSection />
             <TaskManagement />
@@ -195,5 +177,33 @@ const Dashboard = () => {
     </div>
   );
 };
+
+// Reusable components
+const CardSection = ({ title, value, note, variant, delay }: any) => (
+  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
+    <Card className={`bg-gradient-to-br from-${variant}/10 to-${variant}/5 border-${variant}/20`}>
+      <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
+      <p className="text-3xl font-bold text-${variant} mb-2">{value}</p>
+      <p className="text-sm text-muted-foreground">{note}</p>
+    </Card>
+  </motion.div>
+);
+
+const ProgressCard = ({ value, delay }: any) => (
+  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
+    <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+      <h3 className="text-lg font-semibold text-foreground mb-2">Progress</h3>
+      <p className="text-3xl font-bold text-accent mb-2">{value.toFixed(1)}%</p>
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${value}%` }}
+          transition={{ delay: 0.8, duration: 1 }}
+          className="bg-gradient-to-r from-primary to-accent h-2 rounded-full"
+        />
+      </div>
+    </Card>
+  </motion.div>
+);
 
 export default Dashboard;
