@@ -23,7 +23,7 @@ useEffect(() => {
     return;
   }
 
-  fetch('http://localhost:5000/api/dashboard', {
+  fetch('https://she-can-assignment-backend-2.onrender.com/api/dashboard', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: storedUser.email })  // ✅ use email as in backend
